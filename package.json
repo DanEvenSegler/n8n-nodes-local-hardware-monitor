@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-local-hardware-monitor",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"description": "n8n community node to monitor local hardware & system resources on Linux",
 	"license": "MIT",
 	"homepage": "https://github.com/DanEvenSegler/n8n-nodes-local-hardware-monitor#readme",

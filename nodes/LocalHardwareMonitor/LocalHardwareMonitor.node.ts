@@ -85,14 +85,34 @@ export class LocalHardwareMonitor implements INodeType {
 				},
 				options: [
 					{
+						name: 'Audio Devices',
+						value: 'audio',
+						description: 'Retrieve connected audio hardware and inputs/outputs',
+					},
+					{
 						name: 'Baseboard (Motherboard) Specs',
 						value: 'baseboard',
 						description: 'Retrieve motherboard manufacturer, model, and serial',
 					},
 					{
+						name: 'Battery Specs',
+						value: 'battery',
+						description: 'Retrieve battery models, capacity, and current charge levels',
+					},
+					{
 						name: 'BIOS Specs',
 						value: 'bios',
 						description: 'Retrieve BIOS vendor, version, and release date',
+					},
+					{
+						name: 'Block Devices',
+						value: 'blockDevices',
+						description: 'Retrieve low-level block storage devices and partitioning',
+					},
+					{
+						name: 'Bluetooth Specs',
+						value: 'bluetooth',
+						description: 'Retrieve Bluetooth controllers and paired devices',
 					},
 					{
 						name: 'CPU Load',
@@ -123,6 +143,11 @@ export class LocalHardwareMonitor implements INodeType {
 						name: 'Filesystem Storage Usage',
 						value: 'fsSize',
 						description: 'Retrieve mounted filesystems and space usage',
+					},
+					{
+						name: 'Graphics Specs (GPUs)',
+						value: 'graphics',
+						description: 'Retrieve GPU models, vendors, clock speeds, and memory',
 					},
 					{
 						name: 'Memory (RAM & Swap)',
@@ -159,6 +184,11 @@ export class LocalHardwareMonitor implements INodeType {
 						value: 'system',
 						description: 'Retrieve manufacturer, model, serial, UUID, etc',
 					},
+					{
+						name: 'USB Controllers',
+						value: 'usb',
+						description: 'Retrieve connected USB hubs and devices',
+					},
 				],
 				default: [],
 				description: 'Select which specific hardware components to query',
@@ -193,6 +223,70 @@ export class LocalHardwareMonitor implements INodeType {
 				default: false,
 				description: 'Whether to include details of each individual Docker container (requires Docker socket access)',
 			},
+			{
+				displayName: 'Check Network Latency',
+				name: 'checkLatency',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to check network response latency to a target host',
+			},
+			{
+				displayName: 'Latency Host',
+				name: 'latencyHost',
+				type: 'string',
+				displayOptions: {
+					show: {
+						checkLatency: [
+							true,
+						],
+					},
+				},
+				default: '8.8.8.8',
+				description: 'The host domain or IP to check response time (defaults to 8.8.8.8)',
+			},
+			{
+				displayName: 'Check Web Site Responsiveness',
+				name: 'checkSite',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to check the response time and status code of a website',
+			},
+			{
+				displayName: 'Site URL',
+				name: 'siteUrl',
+				type: 'string',
+				displayOptions: {
+					show: {
+						checkSite: [
+							true,
+						],
+					},
+				},
+				default: 'https://n8n.io',
+				description: 'The HTTP/HTTPS URL of the site to check',
+			},
+			{
+				displayName: 'Monitor Specific OS Services',
+				name: 'monitorServices',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to monitor specific background system services',
+			},
+			{
+				displayName: 'Services List',
+				name: 'servicesList',
+				type: 'string',
+				displayOptions: {
+					show: {
+						monitorServices: [
+							true,
+						],
+					},
+				},
+				default: '',
+				placeholder: 'docker, ssh, nginx',
+				description: 'A comma-separated list of background service names to check status',
+			},
 		],
 	};
 
@@ -205,6 +299,9 @@ export class LocalHardwareMonitor implements INodeType {
 				const resource = this.getNodeParameter('resource', i) as string;
 				const includeDetailedProcesses = this.getNodeParameter('includeDetailedProcesses', i, false) as boolean;
 				const includeDetailedDocker = this.getNodeParameter('includeDetailedDocker', i, false) as boolean;
+				const checkLatency = this.getNodeParameter('checkLatency', i, false) as boolean;
+				const checkSite = this.getNodeParameter('checkSite', i, false) as boolean;
+				const monitorServices = this.getNodeParameter('monitorServices', i, false) as boolean;
 
 				const result: IDataObject = {};
 
@@ -217,9 +314,9 @@ export class LocalHardwareMonitor implements INodeType {
 					}
 					if (resource === 'cpu' && ['cpu', 'cpuLoad', 'cpuTemperature'].includes(name)) return true;
 					if (resource === 'memory' && name === 'memory') return true;
-					if (resource === 'disk' && ['diskLayout', 'fsSize', 'diskIO'].includes(name)) return true;
+					if (resource === 'disk' && ['diskLayout', 'fsSize', 'diskIO', 'blockDevices'].includes(name)) return true;
 					if (resource === 'network' && ['networkInterfaces', 'networkStats'].includes(name)) return true;
-					if (resource === 'osSystem' && ['system', 'bios', 'baseboard', 'os'].includes(name)) return true;
+					if (resource === 'osSystem' && ['system', 'bios', 'baseboard', 'os', 'battery', 'graphics', 'usb', 'bluetooth', 'audio'].includes(name)) return true;
 					return false;
 				};
 
@@ -269,6 +366,25 @@ export class LocalHardwareMonitor implements INodeType {
 				if (shouldFetch('networkStats')) {
 					promises.push(si.networkStats().then(data => { result.networkStats = data; }).catch(() => { result.networkStats = null; }));
 				}
+				if (shouldFetch('audio')) {
+					promises.push(si.audio().then(data => { result.audio = data; }).catch(() => { result.audio = null; }));
+				}
+				if (shouldFetch('battery')) {
+					promises.push(si.battery().then(data => { result.battery = data; }).catch(() => { result.battery = null; }));
+				}
+				if (shouldFetch('blockDevices')) {
+					promises.push(si.blockDevices().then(data => { result.blockDevices = data; }).catch(() => { result.blockDevices = null; }));
+				}
+				if (shouldFetch('bluetooth')) {
+					promises.push(si.bluetoothDevices().then(data => { result.bluetooth = data; }).catch(() => { result.bluetooth = null; }));
+				}
+				if (shouldFetch('graphics')) {
+					promises.push(si.graphics().then(data => { result.graphics = data; }).catch(() => { result.graphics = null; }));
+				}
+				if (shouldFetch('usb')) {
+					promises.push(si.usb().then(data => { result.usb = data; }).catch(() => { result.usb = null; }));
+				}
+
 				if (shouldFetch('docker') || (resource === 'all')) {
 					promises.push(
 						Promise.all([
@@ -298,6 +414,34 @@ export class LocalHardwareMonitor implements INodeType {
 							}
 						}).catch(() => { result.processes = null; })
 					);
+				}
+
+				// Network & Services check parameters (run only if explicit boolean parameter is true to avoid unnecessary pings/delays)
+				if (checkLatency) {
+					const host = this.getNodeParameter('latencyHost', i, '8.8.8.8') as string;
+					promises.push(
+						si.inetLatency(host)
+							.then(data => { result.latency = { host, ms: data }; })
+							.catch(() => { result.latency = { host, ms: -1 }; })
+					);
+				}
+				if (checkSite) {
+					const url = this.getNodeParameter('siteUrl', i, 'https://n8n.io') as string;
+					promises.push(
+						si.inetChecksite(url)
+							.then(data => { result.siteCheck = data; })
+							.catch(() => { result.siteCheck = null; })
+					);
+				}
+				if (monitorServices) {
+					const services = this.getNodeParameter('servicesList', i, '') as string;
+					if (services.trim()) {
+						promises.push(
+							si.services(services)
+								.then(data => { result.services = data; })
+								.catch(() => { result.services = null; })
+						);
+					}
 				}
 
 				await Promise.all(promises);

@@ -1,0 +1,16 @@
+{
+	"node": "n8n-nodes-local-hardware-monitor.localHardwareMonitorTrigger",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": [
+		"Developer Tools",
+		"Utility"
+	],
+	"resources": {
+		"primaryDocumentation": [
+			{
+				"url": "https://github.com/DanEvenSegler/n8n-nodes-local-hardware-monitor#readme"
+			}
+		]
+	}
+}

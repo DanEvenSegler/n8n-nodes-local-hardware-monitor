@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-local-hardware-monitor",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"description": "n8n community node to monitor local hardware & system resources on Linux",
 	"license": "MIT",
 	"homepage": "https://github.com/DanEvenSegler/n8n-nodes-local-hardware-monitor#readme",
@@ -31,7 +31,8 @@
 		"n8nNodesApiVersion": 1,
 		"strict": false,
 		"nodes": [
-			"dist/nodes/LocalHardwareMonitor/LocalHardwareMonitor.node.js"
+			"dist/nodes/LocalHardwareMonitor/LocalHardwareMonitor.node.js",
+			"dist/nodes/LocalHardwareMonitorTrigger/LocalHardwareMonitorTrigger.node.js"
 		]
 	},
 	"dependencies": {

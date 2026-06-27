@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-06-27
+
+### Added
+- **Trigger Node (`LocalHardwareMonitorTrigger`):** Added a new polling trigger node to alert and start workflows based on:
+  - CPU load thresholds.
+  - CPU core temperature spikes.
+  - RAM usage percentage limits.
+  - Disk storage utilization on specific partition paths.
+  - OS service status changes (stops running, starts running, any state change).
+  - Docker container state modifications (starts, stops, state changes).
+  - Network latency checks (ping responses above thresholds or complete fail).
+  - Web site status checking (response codes != 200 or response speed timeouts).
+- **Transition Alarms:** Implemented a state-transition trigger system (`onTransition` vs `always`) to prevent notification spamming and only trigger when state flips into an alert zone.
+
 ## [1.1.0] - 2026-06-27
 
 ### Added
